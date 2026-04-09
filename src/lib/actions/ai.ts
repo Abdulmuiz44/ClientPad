@@ -21,7 +21,7 @@ export async function generateAIDraftAction(formData: FormData) {
     parsed = { raw: contextInput };
   }
 
-  await runAIGeneration({
+  const generation = await runAIGeneration({
     workspaceId: workspace.id,
     userId: user.id,
     generationType,
@@ -30,7 +30,9 @@ export async function generateAIDraftAction(formData: FormData) {
     context: parsed,
   });
 
-  redirect(`${returnPath}?ai_refreshed=1`);
+  const status = generation?.status ? `&ai_status=${encodeURIComponent(generation.status)}` : "";
+  const message = generation?.error_message ? `&ai_message=${encodeURIComponent(generation.error_message)}` : "";
+  redirect(`${returnPath}?ai_refreshed=1${status}${message}`);
 }
 
 export async function generateWeeklyDigestAction() {
@@ -51,7 +53,7 @@ export async function generateWeeklyDigestAction() {
   const overdueInvoices = (invoices.data ?? []).filter((i: any) => i.due_date && i.due_date < today && Number(i.balance_amount || 0) > 0 && i.status !== "paid" && i.status !== "cancelled");
   const pendingJobs = (jobs.data ?? []).filter((j: any) => !["completed", "cancelled"].includes(j.status));
 
-  await runAIGeneration({
+  const generation = await runAIGeneration({
     workspaceId: workspace.id,
     userId: user.id,
     generationType: "weekly_digest",
@@ -68,7 +70,9 @@ export async function generateWeeklyDigestAction() {
     },
   });
 
-  redirect("/dashboard?ai_refreshed=1");
+  const status = generation?.status ? `&ai_status=${encodeURIComponent(generation.status)}` : "";
+  const message = generation?.error_message ? `&ai_message=${encodeURIComponent(generation.error_message)}` : "";
+  redirect(`/dashboard?ai_refreshed=1${status}${message}`);
 }
 
 export async function updateAISettingsAction(formData: FormData) {

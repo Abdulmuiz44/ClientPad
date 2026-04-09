@@ -10,6 +10,8 @@ export type AIRequest = {
   generationType: AIGenerationType;
   context: Record<string, unknown>;
   tone?: string;
+  provider?: string;
+  model?: string;
 };
 
 export type AIResponse = {

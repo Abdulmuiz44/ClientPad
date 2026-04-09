@@ -5,7 +5,7 @@ class MistralProvider implements AIProvider {
 
   async generate(input: AIRequest & { prompt: string; timeoutMs?: number }): Promise<AIResponse> {
     const key = process.env.MISTRAL_API_KEY;
-    const model = process.env.MISTRAL_MODEL || "mistral-small-latest";
+    const model = input.model || process.env.MISTRAL_MODEL || "mistral-small-latest";
     if (!key) throw new Error("MISTRAL_API_KEY is missing");
 
     const controller = new AbortController();
@@ -44,8 +44,8 @@ class MistralProvider implements AIProvider {
   }
 }
 
-export function getAIProvider(): AIProvider {
-  const provider = process.env.AI_PROVIDER || "mistral";
+export function getAIProvider(providerName?: string): AIProvider {
+  const provider = providerName || process.env.AI_PROVIDER || "mistral";
   if (provider === "mistral") return new MistralProvider();
   return new MistralProvider();
 }
