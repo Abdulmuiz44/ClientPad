@@ -1,10 +1,16 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
-import { updateWorkspaceAction, inviteMemberAction, updateMemberRoleAction, revokeInviteAction } from "@/lib/actions/workspace";
+import {
+  inviteMemberAction,
+  revokeInviteAction,
+  transferOwnershipAction,
+  updateMemberRoleAction,
+  updateWorkspaceAction,
+} from "@/lib/actions/workspace";
 import { updatePaymentSettingsAction } from "@/lib/actions/revenue";
 import { updateAISettingsAction } from "@/lib/actions/ai";
-import { getWorkspaceMembers, getWorkspaceInvites } from "@/lib/db/workspace";
+import { getWorkspaceInvites, getWorkspaceMembers } from "@/lib/db/workspace";
 import { getPaymentSettings } from "@/lib/db/revenue";
 import { getWorkspaceAISettings, listAIGenerations } from "@/lib/db/ai";
 import { canManageSettings, requireWorkspace } from "@/lib/rbac/permissions";
@@ -24,6 +30,9 @@ export default async function SettingsPage({
     getWorkspaceAISettings(context.workspace.id),
     listAIGenerations(context.workspace.id),
   ]);
+
+  const assignableRoles = getAssignableRoles(context.role);
+  const transferCandidates = members.filter((member) => member.user_id !== context.user.id);
 
   return (
     <div className="space-y-4">
@@ -86,13 +95,35 @@ export default async function SettingsPage({
               </ul>
             </div>
 
+            {context.role === "owner" ? (
+              <div className="space-y-2 rounded border border-amber-200 bg-amber-50 p-3">
+                <p className="text-sm font-semibold text-amber-900">Transfer ownership</p>
+                <p className="text-xs text-amber-800">
+                  Ownership transfer must be initiated by the current owner and will demote your role to admin.
+                </p>
+                <form action={transferOwnershipAction} className="flex flex-col gap-2 md:flex-row">
+                  <select name="new_owner_user_id" required defaultValue="">
+                    <option value="" disabled>
+                      Select new owner
+                    </option>
+                    {transferCandidates.map((member) => (
+                      <option key={member.user_id} value={member.user_id}>
+                        {(member.profiles?.full_name ?? member.user_id) + ` (${member.role})`}
+                      </option>
+                    ))}
+                  </select>
+                  <button className="border border-amber-300 bg-white">Transfer ownership</button>
+                </form>
+              </div>
+            ) : null}
+
             <div>
               <p className="mb-2 text-sm font-semibold">Invites</p>
               {invites.length === 0 ? (
                 <p className="text-sm text-slate-600">No invites yet.</p>
               ) : (
                 <ul className="space-y-2 text-sm">
-                  {invites.map((invite: any) => (
+                  {invites.map((invite) => (
                     <li key={invite.id} className="rounded border border-slate-200 p-3">
                       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                         <div>
