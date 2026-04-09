@@ -6,6 +6,9 @@ import { StatusBadge } from "@/components/revenue/status-badge";
 import { QuickTaskForm } from "@/components/execution/quick-task-form";
 import { ReminderList } from "@/components/execution/reminder-list";
 import { requireWorkspace } from "@/lib/rbac/permissions";
+import { AIGenerateCard } from "@/components/ai/ai-generate-card";
+import { AIHistoryList } from "@/components/ai/ai-history-list";
+import { listAIGenerations } from "@/lib/db/ai";
 import { getInvoice } from "@/lib/db/revenue";
 import { formatNaira } from "@/lib/revenue/calculations";
 import { createClient } from "@/lib/supabase/server";
@@ -21,6 +24,8 @@ export default async function InvoiceDetailPage({ params, searchParams }: { para
   const recordManualPayment = recordManualPaymentAction.bind(null, invoiceId);
 
   const supabase = await createClient();
+  const [aiRows, { data: activities }, { data: reminders }, { data: tasks }] = await Promise.all([
+    listAIGenerations(workspace.id, "invoice", invoiceId),
   const [{ data: activities }, { data: reminders }, { data: tasks }] = await Promise.all([
     supabase.from("activities").select("id,description,created_at,activity_type").eq("workspace_id", workspace.id).in("entity_type", ["invoice", "payment", "task", "reminder"]).eq("entity_id", invoiceId).order("created_at", { ascending: false }).limit(16),
     supabase.from("reminders").select("*").eq("workspace_id", workspace.id).eq("related_entity_type", "invoice").eq("related_entity_id", invoiceId).eq("status", "open").order("due_at", { ascending: true }),
@@ -81,6 +86,31 @@ export default async function InvoiceDetailPage({ params, searchParams }: { para
           <textarea name="note" placeholder="Note" rows={2} />
           <button className="w-full bg-slate-800 text-white">Add manual payment</button>
         </form>
+      </Card>
+
+
+      <Card title="AI Copilot (Optional)">
+        <div className="grid gap-3 md:grid-cols-2">
+          <AIGenerateCard
+            title="Payment reminder draft"
+            description="Generate a polite but firm payment reminder. Review before sending manually."
+            generationType="payment_reminder_draft"
+            entityType="invoice"
+            entityId={invoiceId}
+            returnPath={`/invoices/${invoiceId}`}
+            context={{ invoice_number: invoiceData.invoice.invoice_number, due_date: invoiceData.invoice.due_date, balance_due: invoiceData.invoice.balance_amount, client: (invoiceData.invoice as any).client?.business_name, status: invoiceData.invoice.status }}
+          />
+          <AIGenerateCard
+            title="Next-step suggestions"
+            description="Recommendation-only suggestions for collection and execution follow-up."
+            generationType="next_step_suggestion"
+            entityType="invoice"
+            entityId={invoiceId}
+            returnPath={`/invoices/${invoiceId}`}
+            context={{ invoice_number: invoiceData.invoice.invoice_number, status: invoiceData.invoice.status, balance_due: invoiceData.invoice.balance_amount, overdue: isOverdue, linked_job_hint: true }}
+          />
+        </div>
+        <div className="mt-3"><AIHistoryList rows={aiRows} /></div>
       </Card>
 
       <Card title="Payments">

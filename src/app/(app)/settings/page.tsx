@@ -2,6 +2,11 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
 import { updateWorkspaceAction } from "@/lib/actions/workspace";
 import { updatePaymentSettingsAction } from "@/lib/actions/revenue";
+import { updateAISettingsAction } from "@/lib/actions/ai";
+import { getWorkspaceMembers } from "@/lib/db/workspace";
+import { getPaymentSettings } from "@/lib/db/revenue";
+import { getWorkspaceAISettings, listAIGenerations } from "@/lib/db/ai";
+import Link from "next/link";
 import { getWorkspaceMembers } from "@/lib/db/workspace";
 import { getPaymentSettings } from "@/lib/db/revenue";
 import { canManageSettings, requireWorkspace } from "@/lib/rbac/permissions";
@@ -13,6 +18,11 @@ export default async function SettingsPage({
 }) {
   const context = await requireWorkspace();
   const params = await searchParams;
+  const [members, paymentSettings, aiSettings, aiRows] = await Promise.all([
+    getWorkspaceMembers(context.workspace.id),
+    getPaymentSettings(context.workspace.id),
+    getWorkspaceAISettings(context.workspace.id),
+    listAIGenerations(context.workspace.id),
   const [members, paymentSettings] = await Promise.all([
     getWorkspaceMembers(context.workspace.id),
     getPaymentSettings(context.workspace.id),
@@ -65,6 +75,28 @@ export default async function SettingsPage({
         ) : (
           <p className="text-sm text-slate-600">Only owners/admins can edit payment settings.</p>
         )}
+      </Card>
+
+
+      <Card title="AI Controls">
+        {canManageSettings(context.role) ? (
+          <form action={updateAISettingsAction} className="space-y-3">
+            <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="ai_enabled" defaultChecked={aiSettings?.ai_enabled ?? true} className="h-4 w-4" /> AI enabled</label>
+            <input name="default_provider" defaultValue={aiSettings?.default_provider ?? process.env.AI_PROVIDER ?? "mistral"} placeholder="Default provider" />
+            <input name="default_model" defaultValue={aiSettings?.default_model ?? process.env.MISTRAL_MODEL ?? "mistral-small-latest"} placeholder="Default model" />
+            <input type="number" name="monthly_cap" defaultValue={aiSettings?.monthly_cap ?? ""} placeholder="Monthly generation cap (optional)" />
+            <button className="w-full bg-emerald-700 text-white">Save AI settings</button>
+          </form>
+        ) : (
+          <p className="text-sm text-slate-600">Only owners/admins can edit AI settings.</p>
+        )}
+        <div className="mt-3 rounded border border-slate-200 p-3 text-xs text-slate-600">
+          AI is optional and review-only. Missing Mistral config will result in graceful unavailable/error generation records.
+        </div>
+        <div className="mt-3 flex items-center justify-between text-sm">
+          <span>Recent AI generations: {aiRows.length}</span>
+          <Link href="/ai/history" className="text-emerald-700 underline">View AI history</Link>
+        </div>
       </Card>
 
       <Card title="Team Members">

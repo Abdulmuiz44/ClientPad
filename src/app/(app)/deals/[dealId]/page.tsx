@@ -5,6 +5,9 @@ import { ActivityList } from "@/components/ui/activity-list";
 import { QuickTaskForm } from "@/components/execution/quick-task-form";
 import { ReminderList } from "@/components/execution/reminder-list";
 import { requireWorkspace } from "@/lib/rbac/permissions";
+import { AIGenerateCard } from "@/components/ai/ai-generate-card";
+import { AIHistoryList } from "@/components/ai/ai-history-list";
+import { listAIGenerations } from "@/lib/db/ai";
 import { getDeal } from "@/lib/db/deals";
 import { createClient } from "@/lib/supabase/server";
 import { StatusBadge } from "@/components/revenue/status-badge";
@@ -15,6 +18,8 @@ export default async function DealDetailPage({ params }: { params: Promise<{ dea
   const deal = await getDeal(workspace.id, dealId);
 
   const supabase = await createClient();
+  const [aiRows, { data: activities }, { data: tasks }, { data: reminders }] = await Promise.all([
+    listAIGenerations(workspace.id, "deal", dealId),
   const [{ data: activities }, { data: tasks }, { data: reminders }] = await Promise.all([
     supabase.from("activities").select("id, description, created_at, activity_type").eq("workspace_id", workspace.id).eq("entity_type", "deal").eq("entity_id", dealId).order("created_at", { ascending: false }),
     supabase.from("tasks").select("*").eq("workspace_id", workspace.id).eq("related_entity_type", "deal").eq("related_entity_id", dealId).order("due_at", { ascending: true }),
@@ -41,6 +46,30 @@ export default async function DealDetailPage({ params }: { params: Promise<{ dea
       </Card>
       <Card title="Deal Tasks"><QuickTaskForm entityType="deal" entityId={dealId} titlePrefix={deal.title} /><ul className="mt-3 space-y-2 text-sm">{(tasks ?? []).map((task:any)=><li key={task.id} className="rounded border border-slate-200 p-2"><Link href={`/tasks/${task.id}`} className="font-medium">{task.title}</Link><div className="mt-1"><StatusBadge status={task.status} /></div></li>)}</ul></Card>
       <Card title="Deal Reminders"><ReminderList reminders={reminders ?? []} /></Card>
+      <Card title="AI Copilot (Optional)">
+        <div className="grid gap-3 md:grid-cols-2">
+          <AIGenerateCard
+            title="Follow-up draft"
+            description="Generate a practical follow-up draft for this deal."
+            generationType="follow_up_draft"
+            entityType="deal"
+            entityId={dealId}
+            returnPath={`/deals/${dealId}`}
+            context={{ deal_title: deal.title, stage: deal.stage?.name, amount: deal.amount, expected_close_date: deal.expected_close_date, notes: deal.notes }}
+          />
+          <AIGenerateCard
+            title="Next-step suggestions"
+            description="Get recommendation-only next steps for closing or progressing this deal."
+            generationType="next_step_suggestion"
+            entityType="deal"
+            entityId={dealId}
+            returnPath={`/deals/${dealId}`}
+            context={{ deal_title: deal.title, stage: deal.stage?.name, client: deal.client?.business_name, amount: deal.amount, notes: deal.notes }}
+          />
+        </div>
+        <div className="mt-3"><AIHistoryList rows={aiRows} /></div>
+      </Card>
+
       <Card title="Activity"><ActivityList items={(activities ?? [])} /></Card>
     </div>
   );
