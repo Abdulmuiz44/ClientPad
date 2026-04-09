@@ -11,6 +11,23 @@ export async function getWorkspaceAISettings(workspaceId: string) {
   return data;
 }
 
+export async function getCurrentMonthGenerationCount(workspaceId: string) {
+  const supabase = await createClient();
+  const monthStart = new Date();
+  monthStart.setUTCDate(1);
+  monthStart.setUTCHours(0, 0, 0, 0);
+
+  const { count, error } = await supabase
+    .from("ai_generations")
+    .select("id", { count: "exact", head: true })
+    .eq("workspace_id", workspaceId)
+    .eq("status", "success")
+    .gte("created_at", monthStart.toISOString());
+
+  if (error) throw error;
+  return count ?? 0;
+}
+
 export async function listAIGenerations(workspaceId: string, entityType?: string, entityId?: string) {
   const supabase = await createClient();
   let query = supabase.from("ai_generations").select("*").eq("workspace_id", workspaceId).order("created_at", { ascending: false }).limit(50);

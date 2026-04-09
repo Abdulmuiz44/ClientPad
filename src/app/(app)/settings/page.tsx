@@ -189,6 +189,19 @@ export default async function SettingsPage({
         ) : (
           <p className="text-sm text-slate-600">Only owners/admins can edit AI settings.</p>
         )}
+
+        <div className="mt-3 rounded border border-slate-200 p-3 text-xs text-slate-600">
+          Monthly usage: <span className="font-semibold">{monthlyUsage}</span>
+          {monthlyCap ? (
+            <>
+              {" "}/ <span className="font-semibold">{monthlyCap}</span>
+            </>
+          ) : (
+            <span> / unlimited</span>
+          )}
+          {capReached ? <p className="mt-2 text-amber-700">Monthly cap reached. New generations are blocked and recorded as unavailable.</p> : null}
+        </div>
+
         <div className="mt-3 rounded border border-slate-200 p-3 text-xs text-slate-600">
           AI is optional and review-only. Missing Mistral config produces graceful unavailable/error generation records.
         </div>

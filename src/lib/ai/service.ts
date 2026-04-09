@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { buildPrompt, PROMPT_VERSION } from "@/lib/ai/prompts";
 import { getAIProvider } from "@/lib/ai/providers";
 import type { AIGenerationType } from "@/lib/ai/types";
-import { getWorkspaceAISettings } from "@/lib/db/ai";
+import { getCurrentMonthGenerationCount, getWorkspaceAISettings } from "@/lib/db/ai";
 
 export async function runAIGeneration(params: {
   workspaceId: string;
@@ -15,7 +15,10 @@ export async function runAIGeneration(params: {
   const supabase = await createClient();
   const settings = await getWorkspaceAISettings(params.workspaceId);
 
+  const configuredProvider = settings?.default_provider || process.env.AI_PROVIDER || "mistral";
+  const configuredModel = settings?.default_model || process.env.MISTRAL_MODEL || "mistral-small-latest";
   const aiEnabled = settings?.ai_enabled ?? true;
+
   if (!aiEnabled) {
     const { data } = await supabase
       .from("ai_generations")
@@ -25,8 +28,8 @@ export async function runAIGeneration(params: {
         entity_type: params.entityType ?? null,
         entity_id: params.entityId ?? null,
         generation_type: params.generationType,
-        provider: process.env.AI_PROVIDER || "mistral",
-        model: process.env.MISTRAL_MODEL || "mistral-small-latest",
+        provider: configuredProvider,
+        model: configuredModel,
         prompt_version: PROMPT_VERSION,
         prompt_input_summary: { ai_enabled: false },
         status: "unavailable",
@@ -37,11 +40,43 @@ export async function runAIGeneration(params: {
     return data;
   }
 
+  const monthlyCap = settings?.monthly_cap;
+  if (typeof monthlyCap === "number" && monthlyCap > 0) {
+    const currentMonthCount = await getCurrentMonthGenerationCount(params.workspaceId);
+    if (currentMonthCount >= monthlyCap) {
+      const { data } = await supabase
+        .from("ai_generations")
+        .insert({
+          workspace_id: params.workspaceId,
+          created_by: params.userId,
+          entity_type: params.entityType ?? null,
+          entity_id: params.entityId ?? null,
+          generation_type: params.generationType,
+          provider: configuredProvider,
+          model: configuredModel,
+          prompt_version: PROMPT_VERSION,
+          prompt_input_summary: summarizeContext(params.context),
+          status: "unavailable",
+          error_message: `Monthly AI generation cap reached (${currentMonthCount}/${monthlyCap})`,
+        })
+        .select("*")
+        .single();
+      return data;
+    }
+  }
+
   const prompt = buildPrompt(params.generationType, params.context);
-  const provider = getAIProvider();
+  const provider = getAIProvider(configuredProvider);
 
   try {
-    const result = await provider.generate({ generationType: params.generationType, context: params.context, prompt });
+    const result = await provider.generate({
+      generationType: params.generationType,
+      context: params.context,
+      prompt,
+      provider: configuredProvider,
+      model: configuredModel,
+    });
+
     const { data } = await supabase
       .from("ai_generations")
       .insert({
@@ -72,8 +107,8 @@ export async function runAIGeneration(params: {
         entity_type: params.entityType ?? null,
         entity_id: params.entityId ?? null,
         generation_type: params.generationType,
-        provider: process.env.AI_PROVIDER || "mistral",
-        model: process.env.MISTRAL_MODEL || "mistral-small-latest",
+        provider: configuredProvider,
+        model: configuredModel,
         prompt_version: PROMPT_VERSION,
         prompt_input_summary: summarizeContext(params.context),
         status: "error",
