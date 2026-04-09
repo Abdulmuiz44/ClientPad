@@ -37,11 +37,7 @@ export async function createWorkspaceAction(formData: FormData) {
 
   if (existing) redirect("/dashboard");
 
-  const { data: workspace, error } = await supabase
-    .from("workspaces")
-    .insert(payload)
-    .select("id")
-    .single();
+  const { data: workspace, error } = await supabase.from("workspaces").insert(payload).select("id").single();
 
   if (error || !workspace) {
     redirect(`/onboarding?error=${encodeURIComponent(error?.message ?? "Could not create workspace")}`);
@@ -56,6 +52,8 @@ export async function createWorkspaceAction(formData: FormData) {
   if (memberError) {
     redirect(`/onboarding?error=${encodeURIComponent(memberError.message)}`);
   }
+
+  await setActiveWorkspaceForUser(user.id, workspace.id);
 
   await logActivity({
     workspaceId: workspace.id,
