@@ -1,10 +1,12 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth/session";
 import { requireWorkspace } from "@/lib/rbac/permissions";
 import { logActivity } from "@/lib/db/activity";
+import { setActiveWorkspaceForUser } from "@/lib/db/workspace";
 
 export async function createWorkspaceAction(formData: FormData) {
   const user = await requireUser();
@@ -27,11 +29,7 @@ export async function createWorkspaceAction(formData: FormData) {
 
   if (existing) redirect("/dashboard");
 
-  const { data: workspace, error } = await supabase
-    .from("workspaces")
-    .insert(payload)
-    .select("id")
-    .single();
+  const { data: workspace, error } = await supabase.from("workspaces").insert(payload).select("id").single();
 
   if (error || !workspace) {
     redirect(`/onboarding?error=${encodeURIComponent(error?.message ?? "Could not create workspace")}`);
@@ -46,6 +44,8 @@ export async function createWorkspaceAction(formData: FormData) {
   if (memberError) {
     redirect(`/onboarding?error=${encodeURIComponent(memberError.message)}`);
   }
+
+  await setActiveWorkspaceForUser(user.id, workspace.id);
 
   await logActivity({
     workspaceId: workspace.id,
@@ -79,4 +79,19 @@ export async function updateWorkspaceAction(formData: FormData) {
   }
 
   redirect("/settings?success=Workspace updated");
+}
+
+export async function switchActiveWorkspaceAction(formData: FormData) {
+  const user = await requireUser();
+  const workspaceId = String(formData.get("workspace_id") ?? "").trim();
+  const redirectTo = String(formData.get("redirect_to") ?? "/dashboard").trim() || "/dashboard";
+
+  if (!workspaceId) {
+    redirect(`/dashboard?error=${encodeURIComponent("Please choose a workspace.")}`);
+  }
+
+  await setActiveWorkspaceForUser(user.id, workspaceId);
+
+  revalidatePath("/", "layout");
+  redirect(redirectTo.startsWith("/") ? redirectTo : "/dashboard");
 }
