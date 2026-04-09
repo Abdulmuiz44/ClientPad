@@ -57,8 +57,9 @@ export async function createQuoteAction(formData: FormData) {
   const linkError = await validateRevenueLinks(supabase, workspace.id, { dealId, clientId });
   if (linkError) redirect(`/quotes/new?error=${encodeURIComponent(linkError)}`);
 
-  const { data: quoteNumberData, error: quoteNumberError } = await supabase.rpc("next_quote_number", {
+  const { data: quoteNumberData, error: quoteNumberError } = await supabase.rpc("next_document_number", {
     target_workspace: workspace.id,
+    target_doc_type: "quote",
   });
   if (quoteNumberError) throw quoteNumberError;
 
@@ -167,7 +168,7 @@ export async function convertQuoteToInvoiceAction(quoteId: string) {
   if (quote.status !== "accepted") redirect(`/quotes/${quoteId}?error=Only accepted quotes can be converted`);
 
   const { data: items } = await supabase.from("quote_items").select("*").eq("workspace_id", workspace.id).eq("quote_id", quoteId).order("position", { ascending: true });
-  const { data: invoiceNumberData, error: invoiceNumberError } = await supabase.rpc("next_invoice_number", { target_workspace: workspace.id });
+  const { data: invoiceNumberData, error: invoiceNumberError } = await supabase.rpc("next_document_number", { target_workspace: workspace.id, target_doc_type: "invoice" });
   if (invoiceNumberError) throw invoiceNumberError;
 
   const { data: invoice, error: createError } = await supabase
@@ -227,7 +228,7 @@ export async function createInvoiceAction(formData: FormData) {
   const linkError = await validateRevenueLinks(supabase, workspace.id, { quoteId, dealId, clientId });
   if (linkError) redirect(`/invoices/new?error=${encodeURIComponent(linkError)}`);
 
-  const { data: invoiceNumberData, error: invoiceNumberError } = await supabase.rpc("next_invoice_number", { target_workspace: workspace.id });
+  const { data: invoiceNumberData, error: invoiceNumberError } = await supabase.rpc("next_document_number", { target_workspace: workspace.id, target_doc_type: "invoice" });
   if (invoiceNumberError) throw invoiceNumberError;
 
   const { data: invoice, error } = await supabase.from("invoices").insert({
