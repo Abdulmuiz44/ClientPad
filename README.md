@@ -119,6 +119,7 @@ ClientPad is a WhatsApp-first CRM and revenue workflow platform for Nigerian ser
    - `supabase/migrations/202604090003_execution_workflow.sql`
    - `supabase/migrations/202604090004_ai_layer.sql`
    - `supabase/migrations/202604090005_phase5_polish.sql`
+   - `supabase/migrations/202604090006_remove_workspace_webhook_hash.sql`
 5. Start app:
 5. Start app:
 2. Copy environment file:
@@ -147,6 +148,12 @@ ClientPad is a WhatsApp-first CRM and revenue workflow platform for Nigerian ser
 - `MISTRAL_MODEL` (default: `mistral-small-latest`)
 
 ## Operational notes
+
+### Document numbering
+- Quote and invoice numbers are now allocated by a concurrency-safe database counter keyed by workspace, document type, and month (`YYYYMM`).
+- Format remains `Q-YYYYMM-####` for quotes and `INV-YYYYMM-####` for invoices.
+- Unique constraints on `(workspace_id, quote_number)` and `(workspace_id, invoice_number)` remain as a final safety net.
+
 ### Team invites
 - Owner/admin can invite by email and role from Settings.
 - Invite acceptance is automatic when invited email signs up/signs in.
@@ -168,7 +175,7 @@ ClientPad is a WhatsApp-first CRM and revenue workflow platform for Nigerian ser
 Set webhook URL to:
 - `https://your-domain.com/api/webhooks/flutterwave`
 
-Webhook validates `verif-hash` against `FLUTTERWAVE_WEBHOOK_HASH`.
+Webhook validates `verif-hash` against the global server environment variable `FLUTTERWAVE_WEBHOOK_HASH` (not a workspace setting).
 
 ### AI graceful degradation
 - AI is optional and review-only.
@@ -178,6 +185,10 @@ Webhook validates `verif-hash` against `FLUTTERWAVE_WEBHOOK_HASH`.
 ### Reporting
 - Lightweight reporting route: `/reports`
 - Supported ranges: last 7 days, last 30 days, this month.
+- Data-status banner on report page: `ok`, `partial`, or `failed` to prevent silent partial reporting.
+- Lead → Deal conversion is cohort-based: leads created in selected range that have at least one linked deal created on or before report generation time, divided by leads created in selected range.
+- Status-based metrics normalize status text to lowercase before counting.
+- Completion metrics and conversion metrics guard divide-by-zero by returning `0%` when denominator is `0`.
 - `FLUTTERWAVE_SECRET_KEY`
 - `FLUTTERWAVE_WEBHOOK_HASH`
 - `SUPABASE_SERVICE_ROLE_KEY`
@@ -186,7 +197,7 @@ Webhook validates `verif-hash` against `FLUTTERWAVE_WEBHOOK_HASH`.
 Configure Flutterwave webhook URL to:
 - `https://your-domain.com/api/webhooks/flutterwave`
 
-The endpoint validates `verif-hash` against `FLUTTERWAVE_WEBHOOK_HASH` and updates payments/invoice status idempotently.
+The endpoint validates `verif-hash` against the global server environment variable `FLUTTERWAVE_WEBHOOK_HASH` and updates payments/invoice status idempotently.
 
 ## Scope notes
 - Jobs workflow is intentionally not implemented yet.
