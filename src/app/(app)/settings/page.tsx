@@ -5,22 +5,28 @@ import {
   inviteMemberAction,
   revokeInviteAction,
   transferOwnershipAction,
+  updateBrandingSettingsAction,
   updateMemberRoleAction,
   updateWorkspaceAction,
 } from "@/lib/actions/workspace";
 import { updatePaymentSettingsAction } from "@/lib/actions/revenue";
 import { updateAISettingsAction } from "@/lib/actions/ai";
-import {
-  createPipelineStageAction,
-  movePipelineStageAction,
-  togglePipelineStageActiveAction,
-  updatePipelineStageAction,
-} from "@/lib/actions/pipeline";
-import { getWorkspaceInvites, getWorkspaceMembers } from "@/lib/db/workspace";
+import { getWorkspaceBrandingSettings, getWorkspaceInvites, getWorkspaceMembers } from "@/lib/db/workspace";
 import { getPaymentSettings } from "@/lib/db/revenue";
 import { getWorkspaceAISettings, listAIGenerations } from "@/lib/db/ai";
 import { listPipelineStages } from "@/lib/db/deals";
 import { canManageSettings, getAssignableRoles, requireWorkspace } from "@/lib/rbac/permissions";
+
+function getAssignableRoles(role: "owner" | "admin" | "staff") {
+  return role === "owner" ? ["owner", "admin", "staff"] : ["admin", "staff"];
+}
+
+function memberFullName(member: { user_id: string; profiles?: { full_name: string | null } | Array<{ full_name: string | null }> | null }) {
+  if (!member.profiles) return member.user_id;
+  return Array.isArray(member.profiles)
+    ? (member.profiles[0]?.full_name ?? member.user_id)
+    : (member.profiles.full_name ?? member.user_id);
+}
 
 export default async function SettingsPage({
   searchParams,
@@ -30,20 +36,20 @@ export default async function SettingsPage({
   const context = await requireWorkspace();
   const params = await searchParams;
 
-  const [members, invites, paymentSettings, aiSettings, aiRows, pipelineStages] = await Promise.all([
+  const [members, invites, paymentSettings, brandingSettings, aiSettings, aiRows] = await Promise.all([
     getWorkspaceMembers(context.workspace.id),
     getWorkspaceInvites(context.workspace.id),
     getPaymentSettings(context.workspace.id),
+    getWorkspaceBrandingSettings(context.workspace.id),
     getWorkspaceAISettings(context.workspace.id),
     listAIGenerations(context.workspace.id),
     listPipelineStages(context.workspace.id, { includeInactive: true }),
   ]);
 
-  const assignableRoles = getAssignableRoles(context.role);
   const transferCandidates = members.filter((member) => member.user_id !== context.user.id);
-  const monthlyUsage = aiRows.length;
+  const monthlyUsage = aiRows.filter((row) => row.created_at.startsWith(new Date().toISOString().slice(0, 7))).length;
   const monthlyCap = aiSettings?.monthly_cap ?? null;
-  const capReached = monthlyCap ? monthlyUsage >= monthlyCap : false;
+  const capReached = monthlyCap !== null && monthlyUsage >= monthlyCap;
 
   return (
     <div className="space-y-4">
@@ -122,11 +128,7 @@ export default async function SettingsPage({
             <form action={inviteMemberAction} className="grid gap-2 md:grid-cols-3">
               <input name="email" type="email" placeholder="Invite email" required />
               <select name="role" defaultValue="staff">
-                {assignableRoles.map((role) => (
-                  <option key={role} value={role}>
-                    {role}
-                  </option>
-                ))}
+                {assignableRoles.map((allowedRole) => <option key={allowedRole} value={allowedRole}>{allowedRole}</option>)}
               </select>
               <button className="bg-emerald-700 text-white">Invite member</button>
             </form>
@@ -138,7 +140,7 @@ export default async function SettingsPage({
                   <li key={member.user_id} className="rounded border border-slate-200 p-3 text-sm">
                     <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                       <div>
-                        <p className="font-medium text-slate-900">{member.profiles?.full_name ?? member.user_id}</p>
+                        <p className="font-medium text-slate-900">{memberFullName(member)}</p>
                         <p className="text-xs text-slate-500">{member.user_id}</p>
                       </div>
                       <form action={updateMemberRoleAction} className="flex items-center gap-2">
@@ -149,6 +151,7 @@ export default async function SettingsPage({
                               {role}
                             </option>
                           ))}
+                          {assignableRoles.map((allowedRole) => <option key={allowedRole} value={allowedRole}>{allowedRole}</option>)}
                         </select>
                         <button className="border border-slate-300">Update role</button>
                       </form>
@@ -171,7 +174,7 @@ export default async function SettingsPage({
                     </option>
                     {transferCandidates.map((member) => (
                       <option key={member.user_id} value={member.user_id}>
-                        {(member.profiles?.full_name ?? member.user_id) + ` (${member.role})`}
+                        {memberFullName(member) + ` (${member.role})`}
                       </option>
                     ))}
                   </select>
@@ -234,6 +237,42 @@ export default async function SettingsPage({
           </form>
         ) : (
           <p className="text-sm text-slate-600">Only owners/admins can edit payment settings.</p>
+        )}
+      </Card>
+
+      <Card title="Branding & Document Defaults">
+        {canManageSettings(context.role) ? (
+          <form action={updateBrandingSettingsAction} className="space-y-3">
+            <input name="email" defaultValue={brandingSettings?.email ?? ""} placeholder="Public email for documents" />
+            <textarea name="address" defaultValue={brandingSettings?.address ?? ""} placeholder="Business address" rows={2} />
+            <input
+              name="website_or_social"
+              defaultValue={brandingSettings?.website_or_social ?? ""}
+              placeholder="Website or social handle"
+            />
+            <input name="logo_url" defaultValue={brandingSettings?.logo_url ?? ""} placeholder="Logo URL (PNG/JPG)" />
+            <textarea
+              name="default_footer_text"
+              defaultValue={brandingSettings?.default_footer_text ?? ""}
+              placeholder="Default footer text for PDFs"
+              rows={2}
+            />
+            <textarea
+              name="default_quote_terms"
+              defaultValue={brandingSettings?.default_quote_terms ?? ""}
+              placeholder="Default quote terms (used when quote terms are empty)"
+              rows={3}
+            />
+            <textarea
+              name="default_invoice_terms"
+              defaultValue={brandingSettings?.default_invoice_terms ?? ""}
+              placeholder="Default invoice terms (used when invoice instructions are empty)"
+              rows={3}
+            />
+            <button className="w-full bg-indigo-700 text-white">Save branding defaults</button>
+          </form>
+        ) : (
+          <p className="text-sm text-slate-600">Only owners/admins can edit branding settings.</p>
         )}
       </Card>
 
