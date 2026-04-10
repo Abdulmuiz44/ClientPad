@@ -259,6 +259,8 @@ export type ActivityType =
   | "follow_up.overdue"
   | "invite.accepted"
   | "invite.expired"
+  | "import.started"
+  | "import.completed";
   | "preset.applied";
   | "pipeline_stage.created"
   | "pipeline_stage.updated"

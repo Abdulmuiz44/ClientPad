@@ -16,6 +16,7 @@ import { getWorkspaceBrandingSettings, getWorkspaceInvites, getWorkspaceMembers 
 import { getPaymentSettings } from "@/lib/db/revenue";
 import { getWorkspaceAISettings, listAIGenerations } from "@/lib/db/ai";
 import { canManageSettings, requireWorkspace } from "@/lib/rbac/permissions";
+import { ImportCsvCard } from "@/components/settings/import-csv-card";
 import { WORKSPACE_PRESETS } from "@/lib/onboarding/presets";
 import { listPipelineStages } from "@/lib/db/deals";
 import { canManageSettings, getAssignableRoles, requireWorkspace } from "@/lib/rbac/permissions";
@@ -267,6 +268,9 @@ export default async function SettingsPage({
         )}
       </Card>
 
+
+      <Card title="Data Import (CSV)">
+        <ImportCsvCard />
       <Card title="Onboarding Presets">
         {canManageSettings(context.role) ? (
           <form action={applyWorkspacePresetAction} className="space-y-3">
