@@ -15,6 +15,18 @@ The `Plan.md` Phases 1–5 roadmap is implemented on this codebase, including po
 - Reports hardening and conversion metric clarification
 - Persistent active workspace selection + workspace switcher
 
+## Pilot onboarding readiness additions
+- Guided, resumable onboarding flow for owner/admin users at `/onboarding`
+- Workspace branding defaults (logo URL, contact details, footer, quote/invoice defaults) used by quote/invoice PDF generation
+- Pipeline stage management in Settings (create, rename, reorder, archive/restore)
+- Vertical presets for:
+  - Solar / CCTV installers
+  - Printing businesses
+  - Design / agency providers
+- CSV import for leads and clients with templates + dry-run preview
+- CSV export for leads, clients, deals, and invoices
+- Setup readiness card shown to owner/admin to highlight missing launch-critical setup items
+
 ## Local setup
 1. Install dependencies:
    ```bash
@@ -55,6 +67,10 @@ Apply files exactly in this order:
 9. `supabase/migrations/202604090006_invite_acceptance_guard.sql`
 10. `supabase/migrations/202604090006_owner_role_hardening.sql`
 11. `supabase/migrations/202604090006_document_number_counters.sql`
+12. `supabase/migrations/202604100001_workspace_onboarding_state.sql`
+13. `supabase/migrations/202604100001_workspace_branding_settings.sql`
+14. `supabase/migrations/202604100001_pipeline_stage_archive_support.sql`
+15. `supabase/migrations/202604100001_onboarding_presets.sql`
 
 > Note: several hardening migrations share the `202604090006` prefix. Preserve the order above for deterministic local bootstrap.
 
@@ -81,6 +97,18 @@ Apply files exactly in this order:
 - AI outputs are review-only drafts/suggestions.
 - If AI provider config is missing, disabled, or cap is reached, requests degrade gracefully and are still logged in `ai_generations`.
 - Workspace-level AI settings include provider/model/default enablement and monthly cap.
+
+### Onboarding, setup, and data portability
+- Onboarding route (`/onboarding`) is workspace-aware and resumable.
+- Presets are optional and can be applied again from Settings.
+- CSV import templates:
+  - `public/templates/leads-import-template.csv`
+  - `public/templates/clients-import-template.csv`
+- CSV exports are available via:
+  - `/api/exports/leads`
+  - `/api/exports/clients`
+  - `/api/exports/deals`
+  - `/api/exports/invoices`
 
 ### Reports behavior
 - Reporting route: `/reports`.
