@@ -10,12 +10,14 @@ import { listAIGenerations } from "@/lib/db/ai";
 import { getDashboardStats } from "@/lib/db/dashboard";
 import { getExecutionMetrics, listOpenReminders } from "@/lib/db/execution";
 import { getRevenueMetrics } from "@/lib/db/revenue";
+import { getWeeklyReviewSnapshot } from "@/lib/db/review";
 import { getSetupReadiness } from "@/lib/onboarding/readiness";
 import { canManageSettings, requireWorkspace } from "@/lib/rbac/permissions";
 import { formatNaira } from "@/lib/revenue/calculations";
 
 export default async function DashboardPage() {
   const { workspace, user, role } = await requireWorkspace();
+  const [stats, revenue, execution, reminders, digestRows, readiness, weeklyReview] = await Promise.all([
   const [stats, revenue, execution, reminders, digestRows, readiness] = await Promise.all([
     getDashboardStats(workspace.id),
     getRevenueMetrics(workspace.id),
@@ -23,12 +25,24 @@ export default async function DashboardPage() {
     listOpenReminders(workspace.id),
     listAIGenerations(workspace.id),
     canManageSettings(role) ? getSetupReadiness(workspace.id) : Promise.resolve(null),
+    canManageSettings(role) ? getWeeklyReviewSnapshot(workspace.id) : Promise.resolve(null),
   ]);
 
   return (
     <div className="space-y-4">
       <PageHeader title="Dashboard" description="Track lead, revenue, and execution operations." />
       {readiness ? <SetupReadinessCard readiness={readiness} /> : null}
+      {weeklyReview ? (
+        <Card title="Workspace Health This Week">
+          <p className="text-sm">Stalled deals: {weeklyReview.topAttention.stalledDeals}</p>
+          <p className="text-sm">Overdue invoices: {weeklyReview.topAttention.overdueInvoices}</p>
+          <p className="text-sm">Jobs at risk: {weeklyReview.topAttention.jobsAtRisk}</p>
+          <p className="text-sm">Overdue tasks: {weeklyReview.topAttention.overdueTasks}</p>
+          <a href="/review" className="mt-2 inline-block text-sm font-medium text-emerald-700 underline">
+            Open weekly review
+          </a>
+        </Card>
+      ) : null}
 
       <div className="grid gap-3 md:grid-cols-3">
         <Card title="Total Leads"><p className="text-2xl font-semibold">{stats.totalLeads}</p></Card>

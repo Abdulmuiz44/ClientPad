@@ -26,6 +26,9 @@ The `Plan.md` Phases 1–5 roadmap is implemented on this codebase, including po
 - CSV import for leads and clients with templates + dry-run preview
 - CSV export for leads, clients, deals, and invoices
 - Setup readiness card shown to owner/admin to highlight missing launch-critical setup items
+- Weekly review route for owner/admin (`/review`) with deterministic 7-day pilot operations metrics
+- Workspace health + attention surfacing (stalled deals, overdue invoices, at-risk jobs, overdue tasks)
+- Invoice aging bands for collection pressure visibility (current, overdue 1–7, 8–30, 30+ days)
 
 ## Local setup
 1. Install dependencies:
@@ -109,6 +112,16 @@ Apply files exactly in this order:
   - `/api/exports/clients`
   - `/api/exports/deals`
   - `/api/exports/invoices`
+
+### Pilot success review workflow
+- Owner/admin users can open `/review` for a weekly operational review window.
+- The review page is deterministic-first and includes:
+  - leads/deals/quotes/invoices/jobs/tasks/reminders weekly metrics
+  - stalled deal detection (no deal update for 14+ days, excluding closed stages)
+  - jobs at risk (blocked, overdue, or due within 3 days while not started)
+  - overdue task and overdue invoice attention lists
+  - invoice aging bands for collection pressure follow-up
+- AI weekly summary is optional and secondary to deterministic metrics.
 
 ### Reports behavior
 - Reporting route: `/reports`.
