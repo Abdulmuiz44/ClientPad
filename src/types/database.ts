@@ -56,6 +56,8 @@ export type PipelineStage = {
   name: string;
   position: number;
   is_closed: boolean;
+  is_active: boolean;
+  color: string | null;
   created_at: string;
 };
 
@@ -221,13 +223,16 @@ export type ActivityType =
   | "invoice.overdue"
   | "follow_up.overdue"
   | "invite.accepted"
-  | "invite.expired";
+  | "invite.expired"
+  | "pipeline_stage.created"
+  | "pipeline_stage.updated"
+  | "pipeline_stage.archived";
 
 export type Activity = {
   id: string;
   workspace_id: string;
   actor_user_id: string | null;
-  entity_type: "workspace" | "lead" | "client" | "deal" | "quote" | "invoice" | "payment" | "job" | "task" | "reminder";
+  entity_type: "workspace" | "lead" | "client" | "deal" | "quote" | "invoice" | "payment" | "job" | "task" | "reminder" | "pipeline_stage";
   entity_id: string;
   activity_type: ActivityType;
   description: string;
