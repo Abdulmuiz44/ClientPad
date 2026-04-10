@@ -11,6 +11,19 @@ export type Workspace = {
   updated_at: string;
 };
 
+export type WorkspaceBrandingSettings = {
+  workspace_id: string;
+  email: string | null;
+  address: string | null;
+  website_or_social: string | null;
+  logo_url: string | null;
+  default_footer_text: string | null;
+  default_quote_terms: string | null;
+  default_invoice_terms: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type WorkspaceMember = {
   workspace_id: string;
   user_id: string;
@@ -244,6 +257,7 @@ export type ActivityType =
   | "follow_up.overdue"
   | "invite.accepted"
   | "invite.expired"
+  | "branding.updated";
   | "onboarding.started"
   | "onboarding.completed";
 
