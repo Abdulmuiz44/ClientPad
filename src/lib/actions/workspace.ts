@@ -7,36 +7,7 @@ import { requireUser } from "@/lib/auth/session";
 import { canAssignRole, requireWorkspace } from "@/lib/rbac/permissions";
 import { logActivity } from "@/lib/db/activity";
 import { setActiveWorkspaceForUser } from "@/lib/db/workspace";
-import type { Role, WorkspaceOnboardingStep } from "@/types/database";
-
-const WORKSPACE_ONBOARDING_STEPS: WorkspaceOnboardingStep[] = [
-  "business_profile",
-  "branding_payment",
-  "preset_selection",
-  "data_import",
-  "completed",
-];
-
-function parseOnboardingStep(value: FormDataEntryValue | null): WorkspaceOnboardingStep {
-  const step = String(value ?? "").trim() as WorkspaceOnboardingStep;
-  return WORKSPACE_ONBOARDING_STEPS.includes(step) ? step : "business_profile";
-}
-
-async function ensureOnboardingState(workspaceId: string) {
-  const supabase = await createClient();
-  const now = new Date().toISOString();
-  const { error } = await supabase.from("workspace_onboarding_state").upsert(
-    {
-      workspace_id: workspaceId,
-      current_step: "business_profile",
-      started_at: now,
-      updated_at: now,
-    },
-    { onConflict: "workspace_id" },
-  );
-
-  if (error) throw error;
-}
+import type { Role } from "@/types/database";
 
 function parseRole(value: FormDataEntryValue | null): Role {
   const role = String(value ?? "staff").trim() as Role;
@@ -429,4 +400,13 @@ export async function transferOwnershipAction(formData: FormData) {
   if (demoteError) redirect(`/settings?error=${encodeURIComponent(demoteError.message)}`);
 
   redirect("/settings?success=Ownership transferred");
+}
+
+export async function switchActiveWorkspaceAction(formData: FormData) {
+  const user = await requireUser();
+  const workspaceId = String(formData.get("workspace_id") ?? "").trim();
+  const redirectTo = String(formData.get("redirect_to") ?? "/dashboard").trim() || "/dashboard";
+  if (!workspaceId) redirect(`/dashboard?error=${encodeURIComponent("Workspace is required")}`);
+  await setActiveWorkspaceForUser(user.id, workspaceId);
+  redirect(redirectTo.startsWith("/") ? redirectTo : "/dashboard");
 }
