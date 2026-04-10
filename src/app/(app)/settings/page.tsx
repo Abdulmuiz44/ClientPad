@@ -14,7 +14,8 @@ import { updateAISettingsAction } from "@/lib/actions/ai";
 import { getWorkspaceBrandingSettings, getWorkspaceInvites, getWorkspaceMembers } from "@/lib/db/workspace";
 import { getPaymentSettings } from "@/lib/db/revenue";
 import { getWorkspaceAISettings, listAIGenerations } from "@/lib/db/ai";
-import { canManageSettings, requireWorkspace } from "@/lib/rbac/permissions";
+import { listPipelineStages } from "@/lib/db/deals";
+import { canManageSettings, getAssignableRoles, requireWorkspace } from "@/lib/rbac/permissions";
 
 function getAssignableRoles(role: "owner" | "admin" | "staff") {
   return role === "owner" ? ["owner", "admin", "staff"] : ["admin", "staff"];
@@ -42,6 +43,7 @@ export default async function SettingsPage({
     getWorkspaceBrandingSettings(context.workspace.id),
     getWorkspaceAISettings(context.workspace.id),
     listAIGenerations(context.workspace.id),
+    listPipelineStages(context.workspace.id, { includeInactive: true }),
   ]);
 
   const transferCandidates = members.filter((member) => member.user_id !== context.user.id);
@@ -72,6 +74,54 @@ export default async function SettingsPage({
         )}
       </Card>
 
+      <Card title="Pipeline Stages">
+        {canManageSettings(context.role) ? (
+          <div className="space-y-4">
+            <form action={createPipelineStageAction} className="grid gap-2 md:grid-cols-3">
+              <input name="name" placeholder="New stage name" required />
+              <input name="color" type="text" placeholder="#10B981 (optional)" pattern="^#([0-9a-fA-F]{6})$" />
+              <button className="bg-emerald-700 text-white">Create stage</button>
+            </form>
+
+            <ul className="space-y-2">
+              {pipelineStages.map((stage) => (
+                <li key={stage.id} className="rounded border border-slate-200 p-3 text-sm">
+                  <div className="grid gap-2 md:grid-cols-[1fr_auto] md:items-center">
+                    <form action={updatePipelineStageAction} className="grid gap-2 md:grid-cols-[1fr_160px_auto]">
+                      <input type="hidden" name="stage_id" value={stage.id} />
+                      <input name="name" defaultValue={stage.name} required />
+                      <input name="color" type="text" defaultValue={stage.color ?? ""} placeholder="#10B981" pattern="^#([0-9a-fA-F]{6})$" />
+                      <button className="border border-slate-300">Rename</button>
+                    </form>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      <form action={movePipelineStageAction}>
+                        <input type="hidden" name="stage_id" value={stage.id} />
+                        <input type="hidden" name="direction" value="up" />
+                        <button className="border border-slate-300 px-2 py-1">↑</button>
+                      </form>
+                      <form action={movePipelineStageAction}>
+                        <input type="hidden" name="stage_id" value={stage.id} />
+                        <input type="hidden" name="direction" value="down" />
+                        <button className="border border-slate-300 px-2 py-1">↓</button>
+                      </form>
+                      <form action={togglePipelineStageActiveAction}>
+                        <input type="hidden" name="stage_id" value={stage.id} />
+                        <input type="hidden" name="archived" value={stage.is_active ? "true" : "false"} />
+                        <button className="border border-slate-300 px-2 py-1">{stage.is_active ? "Archive" : "Restore"}</button>
+                      </form>
+                      <span className="text-xs text-slate-500">#{stage.position} • {stage.is_active ? "Active" : "Archived"}</span>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <p className="text-sm text-slate-600">Only owners/admins can manage pipeline stages.</p>
+        )}
+      </Card>
+
       <Card title="Team Management">
         {canManageSettings(context.role) ? (
           <div className="space-y-4">
@@ -96,6 +146,11 @@ export default async function SettingsPage({
                       <form action={updateMemberRoleAction} className="flex items-center gap-2">
                         <input type="hidden" name="member_user_id" value={member.user_id} />
                         <select name="role" defaultValue={member.role}>
+                          {assignableRoles.map((role) => (
+                            <option key={role} value={role}>
+                              {role}
+                            </option>
+                          ))}
                           {assignableRoles.map((allowedRole) => <option key={allowedRole} value={allowedRole}>{allowedRole}</option>)}
                         </select>
                         <button className="border border-slate-300">Update role</button>
@@ -228,8 +283,16 @@ export default async function SettingsPage({
               <input type="checkbox" name="ai_enabled" defaultChecked={aiSettings?.ai_enabled ?? true} className="h-4 w-4" />
               AI enabled
             </label>
-            <input name="default_provider" defaultValue={aiSettings?.default_provider ?? process.env.AI_PROVIDER ?? "mistral"} placeholder="Default provider" />
-            <input name="default_model" defaultValue={aiSettings?.default_model ?? process.env.MISTRAL_MODEL ?? "mistral-small-latest"} placeholder="Default model" />
+            <input
+              name="default_provider"
+              defaultValue={aiSettings?.default_provider ?? process.env.AI_PROVIDER ?? "mistral"}
+              placeholder="Default provider"
+            />
+            <input
+              name="default_model"
+              defaultValue={aiSettings?.default_model ?? process.env.MISTRAL_MODEL ?? "mistral-small-latest"}
+              placeholder="Default model"
+            />
             <input type="number" name="monthly_cap" defaultValue={aiSettings?.monthly_cap ?? ""} placeholder="Monthly generation cap (optional)" />
             <button className="w-full bg-emerald-700 text-white">Save AI settings</button>
           </form>
