@@ -17,6 +17,7 @@ const navItems = [
   { href: "/pilots", label: "Pilots" },
   { href: "/insights", label: "Insights" },
   { href: "/ai/history", label: "AI History" },
+  { href: "/diagnostics", label: "Diagnostics" },
   { href: "/settings", label: "Settings" },
 ];
 
