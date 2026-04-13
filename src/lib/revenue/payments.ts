@@ -73,37 +73,43 @@ async function refreshInvoiceAmountsWithClient(
 }
 
 async function verifyFlutterwaveTransaction(transactionId: number): Promise<FlutterwaveVerification | null> {
-  if (!process.env.FLUTTERWAVE_SECRET_KEY) throw new Error("Flutterwave secret key not configured");
+  const secretKey = process.env.FLUTTERWAVE_SECRET_KEY;
+  if (!secretKey) return null;
 
-  const response = await fetch(`https://api.flutterwave.com/v3/transactions/${transactionId}/verify`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${process.env.FLUTTERWAVE_SECRET_KEY}`,
-      "Content-Type": "application/json",
-    },
-    cache: "no-store",
-  });
+  try {
+    const response = await fetch(`https://api.flutterwave.com/v3/transactions/${transactionId}/verify`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${secretKey}`,
+        "Content-Type": "application/json",
+      },
+      cache: "no-store",
+    });
 
-  if (!response.ok) return null;
+    if (!response.ok) return null;
 
-  const json = await response.json();
-  const data = json?.data;
+    const json = await response.json();
+    const data = json?.data;
 
-  const verifiedId = Number(data?.id);
-  const amount = Number(data?.amount ?? 0);
+    const verifiedId = Number(data?.id);
+    const amount = Number(data?.amount ?? 0);
 
-  if (!Number.isInteger(verifiedId) || verifiedId <= 0 || Number.isNaN(amount) || !data?.tx_ref) {
+    if (!Number.isInteger(verifiedId) || verifiedId <= 0 || Number.isNaN(amount) || !data?.tx_ref) {
+      return null;
+    }
+
+    return {
+      id: verifiedId,
+      status: String(data?.status ?? ""),
+      amount,
+      currency: String(data?.currency ?? ""),
+      tx_ref: String(data?.tx_ref ?? ""),
+      flw_ref: data?.flw_ref ? String(data.flw_ref) : null,
+    };
+  } catch (error) {
+    console.error("Flutterwave verification error:", error);
     return null;
   }
-
-  return {
-    id: verifiedId,
-    status: String(data?.status ?? ""),
-    amount,
-    currency: String(data?.currency ?? ""),
-    tx_ref: String(data?.tx_ref ?? ""),
-    flw_ref: data?.flw_ref ? String(data.flw_ref) : null,
-  };
 }
 
 async function recordWebhookFailureActivity(params: {

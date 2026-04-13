@@ -181,7 +181,34 @@ Apply files exactly in this order:
   - founder follow-up cadence
   - explicit pilot risk status where set
 
-### Reports behavior
+  ## Production Runbook & Diagnostics
+
+  ### Deployment Prerequisites
+  1. **Critical Env Vars**: Ensure all required environment variables are set in your production environment (Netlify/Vercel/etc.).
+  2. **Migration Order**: Follow the exact migration sequence provided above.
+  3. **Webhook Verification**: Configure `FLUTTERWAVE_WEBHOOK_HASH` and point your Flutterwave dashboard to `[YOUR_APP_URL]/api/webhooks/flutterwave`.
+
+  ### System Health & Debugging
+  - **Healthcheck**: Access `[YOUR_APP_URL]/api/health` to verify app, database, and config status (JSON response).
+  - **Diagnostics**: Owner/Admin users can visit `/diagnostics` within the app for a detailed configuration and setup audit.
+  - **Graceful Failure**: Major routes (Dashboard, Onboarding, Auth) are protected by `error.tsx` handlers to prevent opaque server crashes.
+  - **AI/Payment Fallbacks**: If API keys are missing, the UI will degrade gracefully with actionable messages rather than hard-failing.
+
+  ### Common Failure Modes
+  1. **Missing Workspace/Onboarding**: If a user is redirected repeatedly to `/onboarding`, ensure `pipeline_stages` were correctly seeded for that workspace.
+  2. **Payment Link Failure**: Check `FLUTTERWAVE_SECRET_KEY` in your environment.
+  3. **AI Generation Errors**: Verify `MISTRAL_API_KEY` and `MISTRAL_MODEL`.
+  4. **Webhook Signature Issues**: Ensure `FLUTTERWAVE_WEBHOOK_HASH` matches what is set in the Flutterwave dashboard.
+
+  ### Post-Deploy Smoke Test
+  - [ ] Sign in with a test user.
+  - [ ] Verify `/api/health` returns 200 OK.
+  - [ ] Navigate to `/diagnostics` (as Admin) and check for red/missing items.
+  - [ ] Create a test Lead to verify DB connectivity.
+  - [ ] Generate a Quote to verify PDF generation logic.
+
+  ## Reports behavior
+
 - Reporting route: `/reports`.
 - Supports key snapshot + funnel/conversion metrics.
 - Conversion metric is cohort-based (leads created in range that have linked deals).
