@@ -29,6 +29,8 @@ The `Plan.md` Phases 1–5 roadmap is implemented on this codebase, including po
 - Weekly review route for owner/admin (`/review`) with deterministic 7-day pilot operations metrics
 - Workspace health + attention surfacing (stalled deals, overdue invoices, at-risk jobs, overdue tasks)
 - Invoice aging bands for collection pressure visibility (current, overdue 1–7, 8–30, 30+ days)
+- Pilot insights route for owner/admin (`/insights`) covering pilot status, customer feedback capture, weekly check-in notes, success metrics, and case-study readiness tracking
+- Founder pilot portfolio route for owner/admin (`/pilots`) covering multi-workspace health, follow-up cadence, action queues, comparison, and case-study candidate surfacing
 
 ## WhatsApp Business API Integration
 - Direct WhatsApp message sending via Business API (not just share links)
@@ -92,6 +94,24 @@ Apply files exactly in this order:
 16. `supabase/migrations/202605010001_whatsapp_layer.sql`
 
 > Note: several hardening migrations share the `202604090006` prefix. Preserve the order above for deterministic local bootstrap.
+2. `supabase/migrations/202604090002_active_workspace_selection.sql`
+3. `supabase/migrations/202604090003_revenue_flow.sql`
+4. `supabase/migrations/202604090004_execution_workflow.sql`
+5. `supabase/migrations/202604090005_ai_layer.sql`
+6. `supabase/migrations/202604090006_phase5_polish.sql`
+7. `supabase/migrations/202604090007_document_number_counters.sql`
+8. `supabase/migrations/202604090008_invite_acceptance_guard.sql`
+9. `supabase/migrations/202604090009_owner_role_hardening.sql`
+10. `supabase/migrations/202604090010_remove_workspace_webhook_hash.sql`
+11. `supabase/migrations/202604090011_workspace_scoped_fks.sql`
+12. `supabase/migrations/202604100002_onboarding_presets.sql`
+13. `supabase/migrations/202604100003_pipeline_stage_archive_support.sql`
+14. `supabase/migrations/202604100004_workspace_branding_settings.sql`
+15. `supabase/migrations/202604100005_workspace_onboarding_state.sql`
+16. `supabase/migrations/202604120003_pilot_learning_layer.sql`
+17. `supabase/migrations/202604130001_pilot_portfolio_follow_up.sql`
+
+> Note: follow the exact filenames above. They reflect the normalized migration history currently merged on `main`.
 
 ## Operational notes
 ### Workspace switching
@@ -159,7 +179,88 @@ Apply files exactly in this order:
   - invoice aging bands for collection pressure follow-up
 - AI weekly summary is optional and secondary to deterministic metrics.
 
-### Reports behavior
+### Pilot learning workflow
+- Owner/admin users can open `/insights` for the internal pilot-management layer.
+- Deterministic success metrics support:
+  - last 7 days
+  - last 30 days
+  - this month
+- Metrics tracked include:
+  - leads created
+  - lead-to-deal conversion
+  - quotes sent (from quote send/accept activity)
+  - invoice payment rate
+  - average days to payment record when payment timestamps exist
+  - jobs completed on time
+  - active seats in window
+  - reminder completion rate
+  - task completion rate
+- `/insights` also supports:
+  - workspace pilot status management
+  - customer stage and case-study readiness fields
+  - lightweight customer feedback capture
+  - weekly check-in notes with optional linked feedback items
+  - operational evidence snapshots stored with each check-in note
+  - comparison across accessible workspaces using the existing workspace membership model
+
+### Founder pilot portfolio workflow
+- Owner/admin users can open `/pilots` for a cross-workspace founder/operator cockpit.
+- A "Pilot Portfolio Cockpit" summary and link is visible on the Dashboard for owner/admin users.
+- `/pilots` adds:
+  - deterministic cross-workspace attention levels (`healthy`, `watch`, `needs attention`, `at risk`)
+  - portfolio-level filterable workspace list
+  - founder follow-up cadence tracking using:
+    - latest check-in date
+    - next follow-up date
+    - follow-up status
+    - next follow-up focus note
+  - operator action-center groupings for:
+    - pilots needing check-in
+    - overdue invoice pressure
+    - stalled deals or jobs at risk
+    - critical unresolved feedback
+    - case-study candidates
+  - cross-workspace comparison for a selected set of pilot workspaces
+  - unresolved feedback queue across pilot workspaces
+- Health scoring is deterministic and explainable. It combines:
+  - setup readiness
+  - recent activity and active seats
+  - overdue invoices
+  - stalled deals
+  - jobs at risk
+  - overdue tasks
+  - critical unresolved feedback
+  - founder follow-up cadence
+  - explicit pilot risk status where set
+
+  ## Production Runbook & Diagnostics
+
+  ### Deployment Prerequisites
+  1. **Critical Env Vars**: Ensure all required environment variables are set in your production environment (Netlify/Vercel/etc.).
+  2. **Migration Order**: Follow the exact migration sequence provided above.
+  3. **Webhook Verification**: Configure `FLUTTERWAVE_WEBHOOK_HASH` and point your Flutterwave dashboard to `[YOUR_APP_URL]/api/webhooks/flutterwave`.
+
+  ### System Health & Debugging
+  - **Healthcheck**: Access `[YOUR_APP_URL]/api/health` to verify app, database, and config status (JSON response).
+  - **Diagnostics**: Owner/Admin users can visit `/diagnostics` within the app for a detailed configuration and setup audit.
+  - **Graceful Failure**: Major routes (Dashboard, Onboarding, Auth) are protected by `error.tsx` handlers to prevent opaque server crashes.
+  - **AI/Payment Fallbacks**: If API keys are missing, the UI will degrade gracefully with actionable messages rather than hard-failing.
+
+  ### Common Failure Modes
+  1. **Missing Workspace/Onboarding**: If a user is redirected repeatedly to `/onboarding`, ensure `pipeline_stages` were correctly seeded for that workspace.
+  2. **Payment Link Failure**: Check `FLUTTERWAVE_SECRET_KEY` in your environment.
+  3. **AI Generation Errors**: Verify `MISTRAL_API_KEY` and `MISTRAL_MODEL`.
+  4. **Webhook Signature Issues**: Ensure `FLUTTERWAVE_WEBHOOK_HASH` matches what is set in the Flutterwave dashboard.
+
+  ### Post-Deploy Smoke Test
+  - [ ] Sign in with a test user.
+  - [ ] Verify `/api/health` returns 200 OK.
+  - [ ] Navigate to `/diagnostics` (as Admin) and check for red/missing items.
+  - [ ] Create a test Lead to verify DB connectivity.
+  - [ ] Generate a Quote to verify PDF generation logic.
+
+  ## Reports behavior
+
 - Reporting route: `/reports`.
 - Supports key snapshot + funnel/conversion metrics.
 - Conversion metric is cohort-based (leads created in range that have linked deals).

@@ -6,7 +6,15 @@ class MistralProvider implements AIProvider {
   async generate(input: AIRequest & { prompt: string; timeoutMs?: number }): Promise<AIResponse> {
     const key = process.env.MISTRAL_API_KEY;
     const model = input.model || process.env.MISTRAL_MODEL || "mistral-small-latest";
-    if (!key) throw new Error("MISTRAL_API_KEY is missing");
+    
+    if (!key) {
+      return {
+        provider: this.name,
+        model,
+        promptVersion: "v1",
+        outputText: "AI Error: MISTRAL_API_KEY is missing from configuration.",
+      };
+    }
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), input.timeoutMs ?? 20000);
@@ -26,10 +34,26 @@ class MistralProvider implements AIProvider {
         signal: controller.signal,
       });
 
+      if (!response.ok) {
+        const json = await response.json().catch(() => ({}));
+        return {
+          provider: this.name,
+          model,
+          promptVersion: "v1",
+          outputText: `AI Error: ${json?.message || "Mistral API request failed with status " + response.status}`,
+        };
+      }
+
       const json = await response.json();
       const outputText = json?.choices?.[0]?.message?.content;
-      if (!response.ok || !outputText) {
-        throw new Error(json?.message || "Mistral generation failed");
+      
+      if (!outputText) {
+        return {
+          provider: this.name,
+          model,
+          promptVersion: "v1",
+          outputText: "AI Error: Empty response from Mistral API.",
+        };
       }
 
       return {
@@ -37,6 +61,13 @@ class MistralProvider implements AIProvider {
         model,
         promptVersion: "v1",
         outputText,
+      };
+    } catch (err) {
+      return {
+        provider: this.name,
+        model,
+        promptVersion: "v1",
+        outputText: `AI Error: ${err instanceof Error ? err.message : "Internal provider error"}`,
       };
     } finally {
       clearTimeout(timeout);

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import type { Role } from "@/types/database";
 import { getWorkspaceForUser } from "@/lib/db/workspace";
 import { requireUser } from "@/lib/auth/session";
+import { isWorkspaceBootstrapped } from "@/lib/onboarding/readiness";
 
 const rank: Record<Role, number> = {
   owner: 3,
@@ -14,6 +15,11 @@ export async function requireWorkspace(minRole: Role = "staff") {
   const workspaceData = await getWorkspaceForUser(user.id);
 
   if (!workspaceData) {
+    redirect("/onboarding");
+  }
+
+  const bootstrapped = await isWorkspaceBootstrapped(workspaceData.workspace.id);
+  if (!bootstrapped) {
     redirect("/onboarding");
   }
 

@@ -332,10 +332,15 @@ export async function generatePaymentLinkAction(invoiceId: string) {
   const txRef = `clientpad-${workspace.id.slice(0, 8)}-${invoiceId.slice(0, 8)}-${Date.now()}`;
   const amount = Number(invoice.balance_amount || invoice.total_amount || 0);
 
+  const secretKey = process.env.FLUTTERWAVE_SECRET_KEY;
+  if (!secretKey) {
+    redirect(`/invoices/${invoiceId}?error=Flutterwave secret key is not configured. Please contact your administrator.`);
+  }
+
   const response = await fetch("https://api.flutterwave.com/v3/payments", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${process.env.FLUTTERWAVE_SECRET_KEY}`,
+      Authorization: `Bearer ${secretKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
