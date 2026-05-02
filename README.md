@@ -30,6 +30,14 @@ The `Plan.md` Phases 1–5 roadmap is implemented on this codebase, including po
 - Workspace health + attention surfacing (stalled deals, overdue invoices, at-risk jobs, overdue tasks)
 - Invoice aging bands for collection pressure visibility (current, overdue 1–7, 8–30, 30+ days)
 
+## WhatsApp Business API Integration
+- Direct WhatsApp message sending via Business API (not just share links)
+- Inbound message capture via webhook
+- Message status tracking (sent, delivered, read)
+- Message history per contact/lead/client
+- Send endpoint: `POST /api/whatsapp/send`
+- Webhook endpoint: `POST /api/whatsapp/webhook`
+
 ## Local setup
 1. Install dependencies:
    ```bash
@@ -56,6 +64,13 @@ The `Plan.md` Phases 1–5 roadmap is implemented on this codebase, including po
 - `AI_PROVIDER` (default: `mistral`)
 - `MISTRAL_API_KEY`
 - `MISTRAL_MODEL` (default: `mistral-small-latest`)
+- `FOLLOW_UP_AUTOMATION_TOKEN` (required for `/api/automation/follow-ups`)
+- `FOLLOW_UP_DELIVERY_WEBHOOK_URL` (destination webhook for automated follow-up delivery)
+- `FOLLOW_UP_DELIVERY_WEBHOOK_TOKEN` (optional bearer token sent to delivery webhook)
+- `WHATSAPP_PHONE_NUMBER_UMBER_ID` (WhatsApp Business phone number ID)
+- `WHATSAPP_BUSINESS_ACCOUNT_ID` (WhatsApp Business account ID)
+- `WHATSAPP_ACCESS_TOKEN` (WhatsApp API access token)
+- `WHATSAPP_WEBHOOK_VERIFY_TOKEN` (verify token for webhook validation)
 
 ## Migration order (forward-safe)
 Apply files exactly in this order:
@@ -74,6 +89,7 @@ Apply files exactly in this order:
 13. `supabase/migrations/202604100001_workspace_branding_settings.sql`
 14. `supabase/migrations/202604100001_pipeline_stage_archive_support.sql`
 15. `supabase/migrations/202604100001_onboarding_presets.sql`
+16. `supabase/migrations/202605010001_whatsapp_layer.sql`
 
 > Note: several hardening migrations share the `202604090006` prefix. Preserve the order above for deterministic local bootstrap.
 
@@ -97,9 +113,29 @@ Apply files exactly in this order:
 - Verified webhook updates payment records and recalculates invoice amounts/status.
 
 ### AI behavior and degradation
-- AI outputs are review-only drafts/suggestions.
+- AI outputs are review- only drafts/suggestions.
 - If AI provider config is missing, disabled, or cap is reached, requests degrade gracefully and are still logged in `ai_generations`.
 - Workspace-level AI settings include provider/model/default enablement and monthly cap.
+
+### WhatsApp Business API
+- Direct message sending via WhatsApp Business API (not just share links)
+- Send endpoint: `POST /api/whatsapp/send` (requires workspace membership)
+- Webhook endpoint: `POST /api/whatsapp/webhook` (receives inbound messages + status updates)
+- Message history stored in `whatsapp_messages` table
+- Supports status tracking: sent, delivered, read, failed
+
+### Automated follow-up delivery
+- Dispatch endpoint:
+  - `POST /api/automation/follow-ups`
+- Endpoint requires `Authorization: Bearer <FOLLOW_UP_AUTOMATION_TOKEN>`.
+- Optional request body:
+  - `workspace_id` to target one workspace
+  - `batch_size` (1-200, default 50)
+- The dispatcher:
+  - generates system reminders before dispatching
+  - sends payloads to `FOLLOW_UP_DELIVERY_WEBHOOK_URL`
+  - writes delivery metadata to reminder `metadata.delivery` (`last_status`, retries, next delivery time)
+  - logs delivery audit events in `activities` (`reminder.delivery_sent`, `reminder.delivery_failed`)
 
 ### Onboarding, setup, and data portability
 - Onboarding route (`/onboarding`) is workspace-aware and resumable.
