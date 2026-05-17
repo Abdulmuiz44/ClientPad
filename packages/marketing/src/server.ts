@@ -18,6 +18,91 @@ const PAGES: Record<string, PageEntry> = {
     mdPath: join(PUBLIC_DIR, "index.md"),
     contentType: "text/html; charset=utf-8",
   },
+  "/about": {
+    htmlPath: join(PUBLIC_DIR, "about.html"),
+    mdPath: join(PUBLIC_DIR, "about.md"),
+    contentType: "text/html; charset=utf-8",
+  },
+  "/cloud": {
+    htmlPath: join(PUBLIC_DIR, "cloud.html"),
+    mdPath: join(PUBLIC_DIR, "cloud.md"),
+    contentType: "text/html; charset=utf-8",
+  },
+  "/pricing": {
+    htmlPath: join(PUBLIC_DIR, "pricing.html"),
+    mdPath: join(PUBLIC_DIR, "pricing.md"),
+    contentType: "text/html; charset=utf-8",
+  },
+  "/developers": {
+    htmlPath: join(PUBLIC_DIR, "developers.html"),
+    mdPath: join(PUBLIC_DIR, "developers.md"),
+    contentType: "text/html; charset=utf-8",
+  },
+  "/whatsapp": {
+    htmlPath: join(PUBLIC_DIR, "whatsapp.html"),
+    mdPath: join(PUBLIC_DIR, "whatsapp.md"),
+    contentType: "text/html; charset=utf-8",
+  },
+  "/open-source": {
+    htmlPath: join(PUBLIC_DIR, "open-source.html"),
+    mdPath: join(PUBLIC_DIR, "open-source.md"),
+    contentType: "text/html; charset=utf-8",
+  },
+  "/security": {
+    htmlPath: join(PUBLIC_DIR, "security.html"),
+    mdPath: join(PUBLIC_DIR, "security.md"),
+    contentType: "text/html; charset=utf-8",
+  },
+  "/contact": {
+    htmlPath: join(PUBLIC_DIR, "contact.html"),
+    mdPath: join(PUBLIC_DIR, "contact.md"),
+    contentType: "text/html; charset=utf-8",
+  },
+  "/privacy": {
+    htmlPath: join(PUBLIC_DIR, "privacy.html"),
+    mdPath: join(PUBLIC_DIR, "privacy.md"),
+    contentType: "text/html; charset=utf-8",
+  },
+  "/terms": {
+    htmlPath: join(PUBLIC_DIR, "terms.html"),
+    mdPath: join(PUBLIC_DIR, "terms.md"),
+    contentType: "text/html; charset=utf-8",
+  },
+  "/docs": {
+    htmlPath: join(PUBLIC_DIR, "docs", "index.html"),
+    mdPath: join(PUBLIC_DIR, "docs", "index.md"),
+    contentType: "text/html; charset=utf-8",
+  },
+  "/docs/quickstart": {
+    htmlPath: join(PUBLIC_DIR, "docs", "quickstart.html"),
+    mdPath: join(PUBLIC_DIR, "docs", "quickstart.md"),
+    contentType: "text/html; charset=utf-8",
+  },
+  "/docs/sdk": {
+    htmlPath: join(PUBLIC_DIR, "docs", "sdk.html"),
+    mdPath: join(PUBLIC_DIR, "docs", "sdk.md"),
+    contentType: "text/html; charset=utf-8",
+  },
+  "/docs/self-hosting": {
+    htmlPath: join(PUBLIC_DIR, "docs", "self-hosting.html"),
+    mdPath: join(PUBLIC_DIR, "docs", "self-hosting.md"),
+    contentType: "text/html; charset=utf-8",
+  },
+  "/docs/environment": {
+    htmlPath: join(PUBLIC_DIR, "docs", "environment.html"),
+    mdPath: join(PUBLIC_DIR, "docs", "environment.md"),
+    contentType: "text/html; charset=utf-8",
+  },
+  "/docs/deployment": {
+    htmlPath: join(PUBLIC_DIR, "docs", "deployment.html"),
+    mdPath: join(PUBLIC_DIR, "docs", "deployment.md"),
+    contentType: "text/html; charset=utf-8",
+  },
+  "/docs/troubleshooting": {
+    htmlPath: join(PUBLIC_DIR, "docs", "troubleshooting.html"),
+    mdPath: join(PUBLIC_DIR, "docs", "troubleshooting.md"),
+    contentType: "text/html; charset=utf-8",
+  },
   "/docs/whatsapp-magic": {
     htmlPath: join(PUBLIC_DIR, "docs", "whatsapp-magic.html"),
     mdPath: join(PUBLIC_DIR, "docs", "whatsapp-magic.md"),
@@ -129,15 +214,24 @@ function buildLlmsTxt(): string {
       description: "ClientPad is open-source infrastructure for WhatsApp-first leads, client workflows, API keys, usage tracking, and operator dashboards.",
       links: [
         { title: "ClientPad Home", href: `${mdBase}/index.md`, description: "Landing page with product overview and capabilities" },
+        { title: "About ClientPad", href: `${mdBase}/about.md`, description: "Mission, positioning, and why ClientPad exists" },
+        { title: "Pricing", href: `${mdBase}/pricing.md`, description: "Open-source and hosted Cloud pricing model" },
       ],
     },
     {
       title: "Documentation",
       links: [
+        { title: "Docs Home", href: `${mdBase}/docs/index.md`, description: "Documentation entry point for developers and operators" },
+        { title: "Quickstart", href: `${mdBase}/docs/quickstart.md`, description: "Install and create the first lead" },
+        { title: "SDK", href: `${mdBase}/docs/sdk.md`, description: "TypeScript SDK usage" },
         { title: "WhatsApp Magic", href: `${mdBase}/docs/whatsapp-magic.md`, description: "WhatsApp automation for service businesses: lead capture, bookings, payments" },
         { title: "Public API", href: `${mdBase}/docs/public-api.md`, description: "REST API reference and TypeScript SDK guide" },
+        { title: "Self-hosting", href: `${mdBase}/docs/self-hosting.md`, description: "Run ClientPad with your own PostgreSQL and deployment" },
         { title: "Open-Source Architecture", href: `${mdBase}/docs/open-source.md`, description: "Package structure, database design, and auth architecture" },
         { title: "ClientPad Cloud", href: `${mdBase}/docs/clientpad-cloud.md`, description: "Hosted gateway, operator dashboard, usage tracking, and Lemon Squeezy checkout" },
+        { title: "Environment Variables", href: `${mdBase}/docs/environment.md`, description: "Configuration reference" },
+        { title: "Deployment", href: `${mdBase}/docs/deployment.md`, description: "Domain and Netlify deployment guide" },
+        { title: "Troubleshooting", href: `${mdBase}/docs/troubleshooting.md`, description: "Common live-mode, DNS, API key, and webhook fixes" },
       ],
     },
     {
@@ -171,10 +265,27 @@ function buildLlmsTxt(): string {
 async function buildLlmsFullTxt(): Promise<string> {
   const pages: { path: string; title: string }[] = [
     { path: "/index.md", title: "ClientPad" },
+    { path: "/about.md", title: "About ClientPad" },
+    { path: "/cloud.md", title: "ClientPad Cloud" },
+    { path: "/pricing.md", title: "ClientPad Pricing" },
+    { path: "/developers.md", title: "ClientPad for Developers" },
+    { path: "/whatsapp.md", title: "WhatsApp Operations" },
+    { path: "/open-source.md", title: "Open Source" },
+    { path: "/security.md", title: "Security" },
+    { path: "/contact.md", title: "Contact" },
+    { path: "/privacy.md", title: "Privacy" },
+    { path: "/terms.md", title: "Terms" },
+    { path: "/docs/index.md", title: "ClientPad Docs" },
+    { path: "/docs/quickstart.md", title: "Quickstart" },
+    { path: "/docs/sdk.md", title: "TypeScript SDK" },
     { path: "/docs/whatsapp-magic.md", title: "WhatsApp Magic" },
     { path: "/docs/public-api.md", title: "Public API" },
+    { path: "/docs/self-hosting.md", title: "Self-hosting" },
     { path: "/docs/open-source.md", title: "Open-Source Architecture" },
     { path: "/docs/clientpad-cloud.md", title: "ClientPad Cloud" },
+    { path: "/docs/environment.md", title: "Environment Variables" },
+    { path: "/docs/deployment.md", title: "Deployment" },
+    { path: "/docs/troubleshooting.md", title: "Troubleshooting" },
   ];
 
   let output = "";
@@ -194,6 +305,7 @@ function serveError(res: ServerResponse, status: number, message: string) {
 
 const server = createServer(async (req: IncomingMessage, res: ServerResponse) => {
   const url = req.url || "/";
+  const host = String(req.headers.host || "");
   const userAgent = req.headers["user-agent"] || "";
   const accept = req.headers["accept"] || "";
 
@@ -221,7 +333,8 @@ const server = createServer(async (req: IncomingMessage, res: ServerResponse) =>
     return;
   }
 
-  const { path: rawPath, ext } = normalizePathKeepExt(url);
+  const normalizedUrl = host.startsWith("docs.") && (url === "/" || url === "/index.html") ? "/docs" : url;
+  const { path: rawPath, ext } = normalizePathKeepExt(normalizedUrl);
   const path = rawPath === "/index" ? "/" : rawPath;
   const isDirectMdRequest = ext === ".md";
 

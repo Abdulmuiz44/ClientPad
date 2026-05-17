@@ -25,6 +25,8 @@ packages/marketing/dist
 The build includes:
 
 - static HTML docs pages
+- public pages for about, Cloud, pricing, developers, WhatsApp, open source, contact, security, privacy, and terms
+- host-aware rewrites for `docs.clientpad.xyz`
 - clean-route redirects for `/docs/*`
 - `robots.txt`
 - `sitemap.xml`
@@ -42,4 +44,4 @@ packages/marketing
 
 The package includes `netlify.toml` for the build command and publish directory.
 
-The operator dashboard should stay on `app.clientpad.xyz`; the marketing site should use `clientpad.xyz` and optionally `www.clientpad.xyz`.
+The operator dashboard should stay on `app.clientpad.xyz`; the marketing site should use `clientpad.xyz` and optionally `www.clientpad.xyz`; documentation can use `docs.clientpad.xyz`.
