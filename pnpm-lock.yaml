@@ -25,6 +25,15 @@ importers:
         specifier: ^5.8.2
         version: 5.9.3
 
+  packages/api-host:
+    dependencies:
+      '@clientpad/cloud':
+        specifier: workspace:*
+        version: link:../cloud
+      '@clientpad/server':
+        specifier: workspace:*
+        version: link:../server
+
   packages/cli:
     dependencies:
       '@clientpad/core':
