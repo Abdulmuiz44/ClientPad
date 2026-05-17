@@ -1,10 +1,11 @@
 # ClientPad domain and Netlify deployment
 
-ClientPad uses three production hostnames:
+ClientPad uses four production hostnames:
 
 | Hostname | Purpose | Netlify site |
 | --- | --- | --- |
 | `clientpad.xyz` | Public marketing and docs site | Marketing site |
+| `docs.clientpad.xyz` | Developer and operator docs | Marketing/docs site |
 | `app.clientpad.xyz` | Operator dashboard PWA | Dashboard site |
 | `api.clientpad.xyz` | Cloud API and public API | Cloud API host |
 
@@ -18,6 +19,7 @@ Recommended records in Netlify DNS:
 | --- | --- | --- |
 | NETLIFY | `clientpad.xyz` | Marketing Netlify site |
 | CNAME | `www` | Marketing Netlify site hostname |
+| CNAME | `docs` | Marketing/docs Netlify site hostname |
 | CNAME | `app` | Dashboard Netlify site hostname |
 | CNAME | `api` | Cloud API host |
 
@@ -43,6 +45,7 @@ The build exports:
 
 - `index.html`
 - docs pages under `/docs/*`
+- host-aware docs rewrites for `docs.clientpad.xyz`
 - `_redirects` for clean docs routes
 - `_headers`
 - `robots.txt`
