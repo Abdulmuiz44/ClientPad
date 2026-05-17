@@ -1,0 +1,26 @@
+{
+  "name": "@clientpad/api-host",
+  "private": true,
+  "version": "0.2.0",
+  "description": "Netlify deploy target that serves ClientPad Cloud and public API routes from api.clientpad.xyz.",
+  "license": "MIT",
+  "type": "module",
+  "main": "index.mjs",
+  "files": [
+    "index.mjs",
+    "index.html",
+    "netlify.toml",
+    "netlify",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node -e \"process.stdout.write('api host is deployed as a Netlify function package')\""
+  },
+  "dependencies": {
+    "@clientpad/cloud": "workspace:*",
+    "@clientpad/server": "workspace:*"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
