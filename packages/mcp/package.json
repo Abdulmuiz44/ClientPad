@@ -1,0 +1,40 @@
+{
+  "name": "@clientpad/mcp",
+  "version": "0.2.0",
+  "description": "MCP server for safe ClientPad lead, client, and usage operations.",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "clientpad-mcp": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "keywords": [
+    "clientpad",
+    "mcp",
+    "model-context-protocol",
+    "ai-agents",
+    "business-infrastructure"
+  ],
+  "scripts": {
+    "build": "pnpm --filter @clientpad/sdk build && tsc -p tsconfig.json",
+    "typecheck": "pnpm --filter @clientpad/sdk build && tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && node test/mcp.test.mjs",
+    "prepack": "npm run build"
+  },
+  "dependencies": {
+    "@clientpad/sdk": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^4.4.3"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -65,6 +65,7 @@ console.log("\nPackage READMEs:");
 check("packages/clientpad-core/README.md");
 check("packages/cli/README.md");
 check("packages/sdk/README.md");
+check("packages/mcp/README.md");
 check("packages/server/README.md");
 check("packages/cloud/README.md");
 check("packages/whatsapp/README.md");

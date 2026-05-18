@@ -45,6 +45,12 @@ ClientPad is being built as open-source infrastructure that businesses and devel
   - Native `fetch` with injectable fetch for tests and custom runtimes.
   - Typed `ClientPadError` for non-2xx responses.
 
+- `@clientpad/mcp`
+  - Stdio MCP server for agent runtimes.
+  - SDK-backed tools for leads, clients, and usage.
+  - API-key authentication through the existing public API.
+  - Narrow v1 scope with no cloud admin, WhatsApp control, payments, or destructive operations.
+
 ## Release 0.1.0 Scope
 
 1. Publish the source code to GitHub as an open-source infrastructure repository.
