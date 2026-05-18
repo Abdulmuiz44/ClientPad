@@ -10,6 +10,7 @@ This repository ships installable packages instead of a hosted product with subs
 - `@clientpad/cli`: local project setup, SQL migrations, and API key creation.
 - `@clientpad/server`: fetch-standard public API handler for leads and clients.
 - `@clientpad/sdk`: TypeScript SDK for consuming ClientPad public APIs from apps, workers, and scripts.
+- `@clientpad/mcp`: Model Context Protocol server for agent-safe lead, client, and usage tools backed by the public API.
 - `@clientpad/whatsapp`: WhatsApp automation, lead capture, booking flows, payments, and review prompts for service businesses.
 - `@clientpad/cloud`: hosted control plane for projects, plans, subscriptions, usage, API keys, and operator auth/session management.
 - `@clientpad/dashboard`: developer web dashboard for projects, API keys, usage, billing, docs, preview/live operator access, and WhatsApp operations.
@@ -21,6 +22,7 @@ The dashboard opens in **Preview** mode for sample data or **Live** mode after a
 
 ```bash
 pnpm add @clientpad/core @clientpad/server @clientpad/sdk
+pnpm add @clientpad/mcp
 pnpm add @clientpad/cloud @clientpad/dashboard
 pnpm add -D @clientpad/cli
 ```
@@ -73,6 +75,14 @@ export const handler = createClientPadHandler({
   databaseUrl: process.env.DATABASE_URL!,
   apiKeyPepper: process.env.API_KEY_PEPPER!,
 });
+```
+
+Run ClientPad as an MCP backend for agents:
+
+```bash
+CLIENTPAD_BASE_URL=https://api.clientpad.xyz/api/public/v1 \
+CLIENTPAD_API_KEY=cp_live_your_workspace_key \
+npx @clientpad/mcp
 ```
 
 ## WhatsApp Magic for Nigerian Service Businesses

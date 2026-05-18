@@ -18,7 +18,7 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 // Packages to enforce strict boundary checks on
-const RELEASE_CRITICAL = ["clientpad-core", "cli", "sdk", "server"];
+const RELEASE_CRITICAL = ["clientpad-core", "cli", "sdk", "mcp", "server"];
 
 // Secondary packages — validated but not hard-blocked on CI
 const SECONDARY = ["whatsapp", "cloud", "dashboard"];

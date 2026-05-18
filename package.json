@@ -13,9 +13,10 @@
     "build": "node scripts/pack-packages.mjs",
     "api-key:create": "node packages/cli/bin/clientpad.mjs api-key create",
     "db:migrate": "node packages/cli/bin/clientpad.mjs migrate",
-    "typecheck": "pnpm --filter @clientpad/core typecheck && pnpm --filter @clientpad/sdk typecheck && pnpm --filter @clientpad/whatsapp typecheck && pnpm --filter @clientpad/server typecheck && pnpm --filter @clientpad/cloud typecheck && pnpm --filter @clientpad/dashboard typecheck && pnpm --filter @clientpad/marketing typecheck",
+    "typecheck": "pnpm --filter @clientpad/core typecheck && pnpm --filter @clientpad/sdk typecheck && pnpm --filter @clientpad/mcp typecheck && pnpm --filter @clientpad/whatsapp typecheck && pnpm --filter @clientpad/server typecheck && pnpm --filter @clientpad/cloud typecheck && pnpm --filter @clientpad/dashboard typecheck && pnpm --filter @clientpad/marketing typecheck",
     "test:core": "pnpm --filter @clientpad/core build",
     "test:sdk": "pnpm --filter @clientpad/sdk test",
+    "test:mcp": "pnpm --filter @clientpad/mcp test",
     "test:whatsapp": "pnpm --filter @clientpad/whatsapp test",
     "test:server": "pnpm --filter @clientpad/server test",
     "test:cloud": "pnpm --filter @clientpad/cloud test",
@@ -23,8 +24,8 @@
     "check:deps": "node scripts/check-deps.mjs",
     "check:examples": "node scripts/check-examples.mjs",
     "check:packs": "node scripts/validate-packs.mjs --critical-only",
-    "ci": "pnpm run typecheck && pnpm run test:core && pnpm run test:sdk && pnpm run test:server && pnpm run check:deps && pnpm run check:examples",
-    "verify": "pnpm run typecheck && pnpm run test:sdk && pnpm run test:whatsapp && pnpm run test:server && pnpm run test:cloud && pnpm run test:dashboard && pnpm run check:deps && pnpm run check:examples"
+    "ci": "pnpm run typecheck && pnpm run test:core && pnpm run test:sdk && pnpm run test:mcp && pnpm run test:server && pnpm run check:deps && pnpm run check:examples",
+    "verify": "pnpm run typecheck && pnpm run test:sdk && pnpm run test:mcp && pnpm run test:whatsapp && pnpm run test:server && pnpm run test:cloud && pnpm run test:dashboard && pnpm run check:deps && pnpm run check:examples"
   },
   "dependencies": {
     "@dualmark/cli": "^0.5.2",
