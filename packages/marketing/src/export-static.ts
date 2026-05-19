@@ -19,6 +19,7 @@ const pages = [
   { path: "/contact", html: "contact.html", md: "contact.md", title: "Contact" },
   { path: "/privacy", html: "privacy.html", md: "privacy.md", title: "Privacy" },
   { path: "/terms", html: "terms.html", md: "terms.md", title: "Terms" },
+  { path: "/refund", html: "refund.html", md: "refund.md", title: "Refund Policy" },
   { path: "/docs", html: "docs/index.html", md: "docs/index.md", title: "ClientPad Docs" },
   { path: "/docs/quickstart", html: "docs/quickstart.html", md: "docs/quickstart.md", title: "Quickstart" },
   { path: "/docs/sdk", html: "docs/sdk.html", md: "docs/sdk.md", title: "TypeScript SDK" },
