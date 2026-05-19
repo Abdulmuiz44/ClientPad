@@ -1,28 +1,53 @@
 # ClientPad Pricing
 
-ClientPad's open-source packages are free and MIT licensed.
+ClientPad's open-source packages are free and MIT licensed. Businesses can self-host the software with their own PostgreSQL database at no charge.
 
-Hosted ClientPad Cloud is the paid managed infrastructure path.
+Hosted ClientPad Cloud is the paid managed infrastructure product. It is for teams that want ClientPad operated for them instead of self-hosting.
 
 ## Open Source
 
-For developers and teams running their own infrastructure:
+Price: free.
 
-- MIT licensed packages.
+Included:
+
+- MIT licensed ClientPad packages.
 - Self-hosted PostgreSQL.
-- Unlimited local API keys.
+- Local API keys.
 - CLI migrations.
-- SDK and server package.
+- SDK, MCP server, and public API server package.
+- Community GitHub support.
 
-## Hosted Cloud
+## Hosted Cloud Starter
 
-For businesses that want ClientPad operated as managed infrastructure:
+Planned price: $19 per month per workspace.
 
+For small teams validating ClientPad with a managed API host and operator dashboard.
+
+Included:
+
+- Hosted ClientPad Cloud API.
 - Operator dashboard.
 - Workspace bootstrap.
-- Hosted API gateway.
-- Usage tracking.
-- Lemon Squeezy checkout.
-- Support and operational help.
+- Starter public API key.
+- Usage visibility.
+- Basic setup support.
 
-Hosted plan names and final prices should be configured in Lemon Squeezy before public launch.
+## Hosted Cloud Growth
+
+Planned price: $49 per month per workspace.
+
+For teams using ClientPad in active business workflows.
+
+Included:
+
+- Higher usage allowance.
+- Multiple projects and API keys.
+- WhatsApp setup diagnostics.
+- Usage and billing dashboard.
+- Priority email support.
+
+## Custom Deployment Support
+
+Price: quoted per project.
+
+For businesses that need help deploying, configuring, or extending ClientPad around their workflow. Custom work is optional and separate from the premade hosted Cloud product.

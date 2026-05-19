@@ -68,6 +68,11 @@ const PAGES: Record<string, PageEntry> = {
     mdPath: join(PUBLIC_DIR, "terms.md"),
     contentType: "text/html; charset=utf-8",
   },
+  "/refund": {
+    htmlPath: join(PUBLIC_DIR, "refund.html"),
+    mdPath: join(PUBLIC_DIR, "refund.md"),
+    contentType: "text/html; charset=utf-8",
+  },
   "/docs": {
     htmlPath: join(PUBLIC_DIR, "docs", "index.html"),
     mdPath: join(PUBLIC_DIR, "docs", "index.md"),
@@ -275,6 +280,7 @@ async function buildLlmsFullTxt(): Promise<string> {
     { path: "/contact.md", title: "Contact" },
     { path: "/privacy.md", title: "Privacy" },
     { path: "/terms.md", title: "Terms" },
+    { path: "/refund.md", title: "Refund Policy" },
     { path: "/docs/index.md", title: "ClientPad Docs" },
     { path: "/docs/quickstart.md", title: "Quickstart" },
     { path: "/docs/sdk.md", title: "TypeScript SDK" },
